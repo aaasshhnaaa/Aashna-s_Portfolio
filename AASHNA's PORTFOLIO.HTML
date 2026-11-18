@@ -1,0 +1,2867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aashna.exe | Digital Playground</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --bg:#111111;
+    --white:#f5f1e8;
+    --black:#111111;
+    --blue:#4357ff;
+    --orange:#ff6536;
+    --yellow:#e9ff48;
+    --purple:#a58aff;
+    --card:#1e1e1e;
+    --muted:#aaa;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    cursor:none;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+    background:var(--bg);
+    color:var(--white);
+    font-family:'Space Grotesk',sans-serif;
+    overflow-x:hidden;
+    transition:background .4s, color .4s;
+    position:relative;
+}
+
+body.light{
+    --bg:#f5f1e8;
+    --white:#111;
+    --black:#f5f1e8;
+    --card:#ffffff;
+    --muted:#555;
+}
+
+a{text-decoration:none;color:inherit}
+
+button{font-family:inherit}
+
+::selection{
+    background:var(--yellow);
+    color:#111;
+}
+
+/* TOP SCROLL PROGRESS BAR */
+.scroll-progress-bar{
+    position:fixed;
+    top:0;
+    left:0;
+    height:4px;
+    width:0%;
+    background:linear-gradient(90deg, var(--yellow), var(--orange), var(--purple), var(--blue));
+    z-index:100005;
+    box-shadow:0 0 12px var(--yellow);
+    transition:width .08s ease-out;
+}
+
+/* BACKGROUND & FX CANVASES */
+#bg-canvas{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    pointer-events:none;
+    z-index:0;
+}
+
+#fx-canvas{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    pointer-events:none;
+    z-index:99990;
+}
+
+/* CURSOR SYSTEM */
+.cursor{
+    position:fixed;
+    width:12px;
+    height:12px;
+    background:var(--yellow);
+    border-radius:50%;
+    pointer-events:none;
+    z-index:99999;
+    transform:translate(-50%,-50%);
+    box-shadow:0 0 10px var(--yellow);
+    transition:transform .12s cubic-bezier(0.175,0.885,0.32,1.275), background .3s;
+}
+
+.cursor-ring{
+    position:fixed;
+    width:42px;
+    height:42px;
+    border:2px solid var(--yellow);
+    border-radius:50%;
+    pointer-events:none;
+    z-index:99998;
+    transform:translate(-50%,-50%);
+    transition:width .22s cubic-bezier(0.2,0.8,0.2,1),
+                height .22s cubic-bezier(0.2,0.8,0.2,1),
+                border-color .3s, background .3s, transform .12s ease-out;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.cursor-ring.hover{
+    width:65px;
+    height:65px;
+    background:rgba(233,255,72,0.18);
+    border-style:dashed;
+    animation:cursorSpin 7s linear infinite;
+}
+
+.cursor-ring.view-mode{
+    width:75px;
+    height:75px;
+    background:var(--yellow);
+    border-color:var(--yellow);
+    box-shadow:0 0 15px var(--yellow);
+}
+
+.cursor-ring.view-mode::after{
+    content:"VIEW ↗";
+    font:800 11px 'Syne';
+    color:#111;
+    letter-spacing:.5px;
+}
+
+
+@keyframes cursorSpin{
+    to{transform:translate(-50%,-50%) rotate(360deg)}
+}
+
+@media(pointer:coarse){
+    *{cursor:auto}
+    .cursor,.cursor-ring{display:none}
+}
+
+/* CLICK RIPPLE */
+.click-ripple{
+    position:fixed;
+    border:2px solid var(--yellow);
+    border-radius:50%;
+    pointer-events:none;
+    z-index:99997;
+    transform:translate(-50%,-50%);
+    animation:rippleFade .5s cubic-bezier(0.2,0.8,0.2,1) forwards;
+}
+
+@keyframes rippleFade{
+    0%{width:0;height:0;opacity:1}
+    100%{width:80px;height:80px;opacity:0}
+}
+
+/* LOADER */
+.loader{
+    position:fixed;
+    inset:0;
+    background:var(--blue);
+    z-index:100000;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    transition:.8s cubic-bezier(0.77,0,0.175,1);
+}
+
+.loader.hide{
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(-100%);
+}
+
+.loader h1{
+    font:800 clamp(60px,12vw,130px) 'Syne';
+    color:white;
+    letter-spacing:-8px;
+    animation:loadBounce .8s infinite alternate cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.loader p{
+    color:white;
+    letter-spacing:5px;
+    font-size:11px;
+    margin-top:15px;
+}
+
+.loader-line{
+    height:6px;
+    width:220px;
+    background:#ffffff40;
+    margin-top:30px;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.loader-line:after{
+    content:"";
+    display:block;
+    height:100%;
+    width:0%;
+    background:var(--yellow);
+    animation:loading 2s cubic-bezier(0.65,0,0.35,1) forwards;
+}
+
+@keyframes loading{
+    to{width:100%}
+}
+
+@keyframes loadBounce{
+    to{transform:translateY(-16px) rotate(-3deg)}
+}
+
+/* NAV */
+nav{
+    position:fixed;
+    top:0;
+    width:100%;
+    z-index:1000;
+    padding:18px 6%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#111e;
+    backdrop-filter:blur(15px);
+    border-bottom:1px solid #ffffff15;
+    transition:background .4s;
+}
+
+body.light nav{background:#f5f1e8ee}
+
+.logo{
+    font:800 25px 'Syne';
+    letter-spacing:-2px;
+    display:inline-block;
+    transition:transform .3s;
+}
+
+.logo:hover{
+    transform:scale(1.08) rotate(-2deg);
+}
+
+.logo span{color:var(--orange)}
+
+.nav-links{
+    display:flex;
+    gap:25px;
+}
+
+.nav-links a{
+    font-size:12px;
+    color:var(--muted);
+    font-weight:600;
+    letter-spacing:1px;
+    position:relative;
+    padding:5px 0;
+    transition:.3s;
+}
+
+.nav-links a::after{
+    content:"";
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:0%;
+    height:2px;
+    background:var(--orange);
+    transition:width .3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.nav-links a:hover{
+    color:var(--orange);
+}
+
+.nav-links a:hover::after{
+    width:100%;
+}
+
+.nav-actions{
+    display:flex;
+    gap:10px;
+}
+
+.nav-btn{
+    background:var(--yellow);
+    color:#111;
+    border:0;
+    padding:10px 16px;
+    border-radius:5px;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.5px;
+    cursor:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    transition:transform .2s, background .3s, box-shadow .3s;
+}
+
+.nav-btn:hover{
+    transform:translateY(-3px);
+    box-shadow:4px 4px 0 var(--orange);
+}
+
+/* SOUND EQUALIZER ANIMATION */
+.eq-bars{
+    display:inline-flex;
+    align-items:flex-end;
+    gap:2px;
+    height:12px;
+}
+
+.eq-bar{
+    width:3px;
+    background:#111;
+    border-radius:1px;
+    height:3px;
+    transition:height .2s;
+}
+
+.sound-active .eq-bar:nth-child(1){
+    animation:eqBounce .5s ease infinite alternate;
+}
+.sound-active .eq-bar:nth-child(2){
+    animation:eqBounce .7s ease .15s infinite alternate;
+}
+.sound-active .eq-bar:nth-child(3){
+    animation:eqBounce .4s ease .3s infinite alternate;
+}
+
+@keyframes eqBounce{
+    0%{height:3px}
+    100%{height:12px}
+}
+
+/* GLOBAL SECTIONS */
+section{
+    padding:120px 9%;
+    position:relative;
+    z-index:2;
+}
+
+.tag{
+    color:var(--orange);
+    font-size:12px;
+    letter-spacing:4px;
+    font-weight:700;
+    margin-bottom:20px;
+    display:inline-block;
+    transition:transform .3s;
+}
+
+.tag:hover{
+    transform:translateX(6px);
+}
+
+.heading{
+    font:800 clamp(40px,7vw,85px) 'Syne';
+    letter-spacing:-5px;
+    line-height:1;
+    margin-bottom:45px;
+}
+
+.heading span{
+    color:var(--orange);
+    display:inline-block;
+    transition:transform .3s;
+}
+
+.heading:hover span{
+    transform:rotate(2deg) scale(1.05);
+}
+
+/* SCROLL REVEAL STAGGER */
+.reveal{
+    opacity:0;
+    transform:translateY(45px);
+    transition:opacity .9s cubic-bezier(0.2,0.8,0.2,1), transform .9s cubic-bezier(0.2,0.8,0.2,1);
+    will-change:opacity, transform;
+}
+
+.reveal.visible{
+    opacity:1;
+    transform:translateY(0);
+}
+
+/* HERO */
+.hero{
+    min-height:100vh;
+    padding:150px 9% 100px;
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+    position:relative;
+}
+
+.hero-content{
+    position:relative;
+    z-index:5;
+    width:100%;
+}
+
+.hero-label{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    background:var(--yellow);
+    color:#111;
+    padding:9px 18px;
+    transform:rotate(-3deg);
+    font-weight:800;
+    font-size:11px;
+    margin-bottom:35px;
+    box-shadow:4px 4px 0 var(--orange);
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.hero-label:hover{
+    transform:rotate(0deg) scale(1.05);
+}
+
+.role-flipper{
+    display:inline-block;
+    font-weight:800;
+    color:var(--orange);
+    background:#111;
+    padding:2px 8px;
+    border-radius:3px;
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1), opacity .2s;
+}
+
+.hero h1{
+    font:800 clamp(65px,12vw,150px) 'Syne';
+    letter-spacing:-10px;
+    line-height:.85;
+}
+
+.scramble-word{
+    display:inline-block;
+    cursor:pointer;
+    transition:text-shadow .3s;
+}
+
+.scramble-word:hover{
+    text-shadow:3px 0 var(--orange), -3px 0 var(--blue);
+}
+
+.hero h1 .blue{
+    color:var(--blue);
+    -webkit-text-stroke:2px var(--white);
+    display:inline-block;
+    transition:transform .3s;
+}
+
+.hero h1 .blue:hover{
+    transform:rotate(-2deg) scale(1.03);
+}
+
+.hero h1 .orange{
+    color:var(--orange);
+    display:inline-block;
+    transition:transform .3s;
+}
+
+.hero h1 .orange:hover{
+    transform:rotate(2deg) scale(1.03);
+}
+
+.hero-description{
+    max-width:520px;
+    font-size:16px;
+    color:var(--muted);
+    line-height:1.8;
+    margin:35px 0;
+}
+
+.hero-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.btn{
+    padding:16px 26px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    font-weight:800;
+    border:2px solid var(--white);
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1), box-shadow .3s, background .3s, color .3s;
+    cursor:none;
+    position:relative;
+    overflow:hidden;
+}
+
+.btn-main{
+    background:var(--orange);
+    color:white;
+    border-color:var(--orange);
+    box-shadow:5px 5px 0 var(--yellow);
+}
+
+.btn:hover{
+    transform:translateY(-7px) rotate(-2deg);
+    box-shadow:8px 8px 0 var(--yellow);
+}
+
+.btn-outline:hover{
+    background:var(--yellow);
+    color:#111;
+    border-color:var(--yellow);
+    box-shadow:8px 8px 0 var(--orange);
+}
+
+/* HERO GYROSCOPE RINGS */
+.hero-circle-wrap{
+    position:absolute;
+    width:360px;
+    height:360px;
+    right:10%;
+    top:26%;
+    pointer-events:none;
+    z-index:2;
+}
+
+.gyro-ring{
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    margin:auto;
+}
+
+.gyro-ring.outer{
+    width:340px;
+    height:340px;
+    border:2px dashed var(--purple);
+    animation:rotate 22s linear infinite;
+    opacity:.55;
+}
+
+.gyro-ring.middle{
+    width:240px;
+    height:240px;
+    border:2px dotted var(--yellow);
+    animation:rotateRev 14s linear infinite;
+    opacity:.7;
+}
+
+.gyro-ring.inner{
+    width:150px;
+    height:150px;
+    border:1px solid var(--orange);
+    animation:rotate 9s linear infinite;
+    opacity:.5;
+}
+
+.gyro-satellite{
+    position:absolute;
+    top:-6px;
+    left:50%;
+    width:12px;
+    height:12px;
+    background:var(--yellow);
+    border-radius:50%;
+    box-shadow:0 0 12px var(--yellow);
+}
+
+@keyframes rotate{
+    to{transform:rotate(360deg)}
+}
+
+@keyframes rotateRev{
+    to{transform:rotate(-360deg)}
+}
+
+/* HERO INTERACTIVE PARALLAX STICKERS */
+.sticker{
+    position:absolute;
+    font-size:70px;
+    z-index:7;
+    cursor:pointer;
+    user-select:none;
+    filter:drop-shadow(4px 4px 0 rgba(0,0,0,0.3));
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1), filter .3s;
+    animation:float 4s ease-in-out infinite;
+}
+
+.sticker:hover{
+    transform:scale(1.35) rotate(15deg);
+    filter:drop-shadow(0 0 20px var(--yellow));
+}
+
+.sticker.one{
+    right:15%;
+    top:22%;
+}
+
+.sticker.two{
+    right:35%;
+    bottom:15%;
+    animation-delay:1s;
+}
+
+.sticker.three{
+    right:7%;
+    bottom:20%;
+    animation-delay:2s;
+}
+
+.sticker-bubble{
+    position:absolute;
+    bottom:115%;
+    left:50%;
+    transform:translateX(-50%) scale(0);
+    background:var(--yellow);
+    color:#111;
+    font:800 12px 'Space Grotesk';
+    padding:6px 12px;
+    border-radius:4px;
+    white-space:nowrap;
+    pointer-events:none;
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow:4px 4px 0 #111;
+    z-index:25;
+}
+
+.sticker-bubble.show{
+    transform:translateX(-50%) scale(1);
+}
+
+@keyframes float{
+    0%,100%{transform:translateY(0) rotate(-10deg)}
+    50%{transform:translateY(-25px) rotate(10deg)}
+}
+
+.hero-bottom{
+    position:absolute;
+    bottom:35px;
+    left:9%;
+    right:9%;
+    display:flex;
+    justify-content:space-between;
+    color:var(--muted);
+    font-size:11px;
+    z-index:5;
+}
+
+/* DUAL MARQUEE SECTION */
+.marquee-container{
+    position:relative;
+    padding:15px 0 25px;
+    overflow:hidden;
+    z-index:4;
+}
+
+.marquee.primary{
+    background:var(--yellow);
+    color:#111;
+    padding:20px 0;
+    overflow:hidden;
+    transform:rotate(-1.5deg) scale(1.02);
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 20px rgba(0,0,0,0.3);
+    transition:transform .3s;
+}
+
+.marquee.secondary{
+    background:#1c192d;
+    color:var(--orange);
+    padding:16px 0;
+    overflow:hidden;
+    transform:rotate(1.2deg) scale(1.02);
+    margin-top:-10px;
+    border-top:2px solid var(--purple);
+    border-bottom:2px solid var(--yellow);
+    position:relative;
+    z-index:1;
+    transition:transform .3s;
+}
+
+.marquee-container:hover .marquee.primary{
+    transform:rotate(-0.8deg) scale(1.02);
+}
+
+.marquee-container:hover .marquee.secondary{
+    transform:rotate(0.5deg) scale(1.02);
+}
+
+.marquee-track{
+    display:flex;
+    width:max-content;
+    animation:marquee 24s linear infinite;
+}
+
+.marquee-track.reverse{
+    animation:marqueeRev 26s linear infinite;
+}
+
+.marquee-container:hover .marquee-track{
+    animation-play-state:paused;
+}
+
+.marquee span{
+    font:800 23px 'Syne';
+    padding:0 28px;
+    white-space:nowrap;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+}
+
+@keyframes marquee{
+    to{transform:translateX(-50%)}
+}
+
+@keyframes marqueeRev{
+    from{transform:translateX(-50%)}
+    to{transform:translateX(0%)}
+}
+
+/* ABOUT SECTION */
+.about-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:60px;
+    align-items:center;
+}
+
+.about-text{
+    color:var(--muted);
+    line-height:2;
+    font-size:15px;
+}
+
+.about-text p{margin-bottom:20px}
+
+.about-card{
+    background:var(--blue);
+    color:white;
+    padding:45px;
+    min-height:380px;
+    transform:rotate(2deg);
+    position:relative;
+    box-shadow:12px 12px 0 var(--yellow);
+    transition:transform .4s cubic-bezier(0.34,1.56,0.64,1), box-shadow .4s;
+    overflow:hidden;
+}
+
+.about-card:hover{
+    transform:rotate(0deg) scale(1.03);
+    box-shadow:16px 16px 0 var(--orange);
+}
+
+.about-card h3{
+    font:800 45px 'Syne';
+    margin:35px 0 20px;
+    line-height:1.05;
+}
+
+.about-card p{
+    line-height:1.8;
+}
+
+.about-card .emoji{
+    font-size:52px;
+    display:inline-block;
+    animation:brainBeat 2.2s ease-in-out infinite;
+}
+
+@keyframes brainBeat{
+    0%,100%{transform:scale(1)}
+    15%{transform:scale(1.22) rotate(-6deg)}
+    30%{transform:scale(1.1) rotate(6deg)}
+    45%{transform:scale(1.22) rotate(-3deg)}
+}
+
+.live-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-weight:800;
+    font-size:12px;
+    letter-spacing:1px;
+    margin-top:15px;
+}
+
+.live-dot{
+    width:9px;
+    height:9px;
+    background:#00ff88;
+    border-radius:50%;
+    box-shadow:0 0 10px #00ff88;
+    animation:liveBlink 1.4s ease-in-out infinite;
+}
+
+@keyframes liveBlink{
+    0%,100%{opacity:1;transform:scale(1)}
+    50%{opacity:.3;transform:scale(.75)}
+}
+
+.stats{
+    display:flex;
+    gap:35px;
+    margin-top:35px;
+    flex-wrap:wrap;
+}
+
+.stat strong{
+    display:block;
+    font:800 42px 'Syne';
+    color:var(--orange);
+    transition:transform .3s;
+}
+
+.stat:hover strong{
+    transform:scale(1.2) rotate(4deg);
+    color:var(--yellow);
+}
+
+.stat small{
+    color:var(--muted);
+    font-weight:700;
+    letter-spacing:1px;
+}
+
+/* INTERACTIVE TICKER */
+.ticker{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:15px;
+    margin-top:40px;
+}
+
+.ticker-item{
+    background:var(--card);
+    border:1px solid #ffffff20;
+    padding:15px 22px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1px;
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1), background .3s, color .3s, box-shadow .3s;
+    cursor:pointer;
+}
+
+.ticker-item:hover{
+    background:var(--purple);
+    color:#111;
+    transform:rotate(-5deg) scale(1.12);
+    box-shadow:6px 6px 0 var(--yellow);
+}
+
+/* JOURNEY TIMELINE */
+.timeline{
+    max-width:850px;
+    margin:auto;
+    border-left:3px solid #333333;
+    padding-left:40px;
+    position:relative;
+}
+
+.timeline-laser{
+    position:absolute;
+    left:-3px;
+    top:0;
+    width:3px;
+    height:0%;
+    background:linear-gradient(180deg, var(--yellow), var(--orange), var(--purple));
+    box-shadow:0 0 12px var(--orange);
+    transition:height .15s ease-out;
+}
+
+.timeline-item{
+    margin-bottom:35px;
+    position:relative;
+    padding:30px;
+    background:var(--card);
+    border:1px solid #ffffff15;
+    transition:transform .4s cubic-bezier(0.34,1.56,0.64,1), border-color .3s, box-shadow .3s;
+}
+
+.timeline-item:before{
+    content:"";
+    position:absolute;
+    left:-51px;
+    top:35px;
+    width:18px;
+    height:18px;
+    background:var(--yellow);
+    border:4px solid var(--bg);
+    border-radius:50%;
+    transition:box-shadow .3s, transform .3s;
+}
+
+.timeline-item.visible:before{
+    animation:radarPulse 2.4s infinite;
+}
+
+@keyframes radarPulse{
+    0%{box-shadow:0 0 0 0 rgba(233,255,72,0.8)}
+    70%{box-shadow:0 0 0 16px rgba(233,255,72,0)}
+    100%{box-shadow:0 0 0 0 rgba(233,255,72,0)}
+}
+
+.timeline-item:hover{
+    transform:translateX(14px);
+    border-color:var(--orange);
+    box-shadow:8px 8px 0 var(--orange);
+}
+
+.timeline-item h3{
+    font:700 23px 'Syne';
+}
+
+.timeline-item small{
+    display:block;
+    color:var(--orange);
+    font-weight:700;
+    margin:12px 0;
+    letter-spacing:.5px;
+}
+
+.timeline-item p{
+    color:var(--muted);
+    line-height:1.8;
+}
+
+/* 3D HOLOGRAPHIC PROJECT CARDS */
+.project-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:25px;
+    perspective:1200px;
+}
+
+.project{
+    min-height:310px;
+    padding:35px;
+    background:var(--card);
+    border:2px solid #ffffff15;
+    position:relative;
+    overflow:hidden;
+    transform-style:preserve-3d;
+    transition:border-color .3s, box-shadow .3s, transform .2s ease-out;
+}
+
+.project:nth-child(2n){
+    background:#29204a;
+}
+
+.project:nth-child(3n){
+    background:#163a37;
+}
+
+.project-glare{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255,255,255,0.18) 0%, transparent 65%);
+    opacity:0;
+    transition:opacity .3s;
+    mix-blend-mode:overlay;
+    z-index:8;
+}
+
+.project:hover .project-glare{
+    opacity:1;
+}
+
+.project:hover{
+    border-color:var(--yellow);
+    box-shadow:12px 12px 0 var(--orange);
+}
+
+.project-content{
+    transform-style:preserve-3d;
+    position:relative;
+    z-index:2;
+}
+
+.project-number{
+    font-size:12px;
+    color:var(--yellow);
+    font-weight:800;
+    transform:translateZ(20px);
+    display:inline-block;
+}
+
+.project-emoji{
+    font-size:46px;
+    margin:20px 0;
+    display:inline-block;
+    transform:translateZ(55px);
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1);
+    filter:drop-shadow(0 10px 10px rgba(0,0,0,0.35));
+}
+
+.project:hover .project-emoji{
+    transform:translateZ(80px) rotate(20deg) scale(1.3);
+}
+
+.project h3{
+    font:800 30px 'Syne';
+    margin-bottom:15px;
+    transform:translateZ(35px);
+}
+
+.project p{
+    color:#ccc;
+    line-height:1.8;
+    font-size:13px;
+    transform:translateZ(20px);
+}
+
+.project-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:25px;
+    font-size:11px;
+    font-weight:700;
+    color:var(--yellow);
+    transform:translateZ(25px);
+}
+
+.project-arrow{
+    font-size:24px;
+    display:inline-block;
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.project:hover .project-arrow{
+    transform:translate(6px, -6px) rotate(45deg);
+    color:var(--white);
+}
+
+/* SKILLS JELLY PHYSICS */
+.skills-container{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:20px;
+}
+
+.skill{
+    padding:25px 35px;
+    font:800 20px 'Syne';
+    background:var(--card);
+    border:2px solid #ffffff20;
+    transition:transform .3s, background .3s, color .3s, box-shadow .3s;
+    user-select:none;
+    cursor:pointer;
+    position:relative;
+    animation:skillLevitate 4.5s ease-in-out infinite alternate;
+}
+
+.skill:nth-child(even){
+    animation-duration:5.5s;
+    animation-delay:-2s;
+}
+
+@keyframes skillLevitate{
+    0%{transform:translateY(0)}
+    100%{transform:translateY(-8px)}
+}
+
+.skill:nth-child(4n+1){color:var(--yellow)}
+.skill:nth-child(4n+2){color:var(--orange)}
+.skill:nth-child(4n+3){color:var(--purple)}
+.skill:nth-child(4n){color:#58a8ff}
+
+.skill:hover{
+    animation:jellyBounce .65s both;
+    background:var(--white);
+    color:#111;
+    box-shadow:8px 8px 0 var(--orange);
+    z-index:10;
+}
+
+@keyframes jellyBounce{
+    0%{transform:scale(1,1)}
+    30%{transform:scale(1.25,0.75)}
+    40%{transform:scale(0.75,1.25)}
+    50%{transform:scale(1.15,0.85)}
+    65%{transform:scale(0.95,1.05)}
+    75%{transform:scale(1.05,0.95)}
+    100%{transform:scale(1,1)}
+}
+
+/* CERTIFICATE SECTION */
+.certificate{
+    background:var(--yellow);
+    color:#111;
+    padding:45px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:20px;
+    transform:rotate(-1deg);
+    position:relative;
+    overflow:hidden;
+    box-shadow:8px 8px 0 var(--orange);
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.certificate:hover{
+    transform:rotate(0deg) scale(1.02);
+}
+
+.certificate::after{
+    content:"";
+    position:absolute;
+    top:-50%;
+    left:-50%;
+    width:200%;
+    height:200%;
+    background:linear-gradient(45deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%);
+    transform:rotate(25deg);
+    animation:holoShine 5s linear infinite;
+    pointer-events:none;
+}
+
+@keyframes holoShine{
+    0%{transform:translateY(-120%) rotate(25deg)}
+    100%{transform:translateY(120%) rotate(25deg)}
+}
+
+.certificate h3{
+    font:800 32px 'Syne';
+}
+
+.certificate p{
+    margin-top:10px;
+    font-weight:600;
+}
+
+.trophy-bounce{
+    font-size:65px;
+    display:inline-block;
+    animation:trophyFloat 3s ease-in-out infinite alternate;
+}
+
+@keyframes trophyFloat{
+    0%{transform:translateY(0) rotate(-5deg)}
+    100%{transform:translateY(-12px) rotate(5deg) scale(1.1)}
+}
+
+/* FUN ZONE */
+.fun-section{
+    background:var(--blue);
+    color:white;
+    overflow:hidden;
+}
+
+.fun-section .tag{color:var(--yellow)}
+
+.fun-section .heading span{color:var(--yellow)}
+
+.fun-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:25px;
+}
+
+.fun-card{
+    background:#111;
+    color:white;
+    padding:35px;
+    min-height:270px;
+    border:2px solid white;
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1), box-shadow .3s;
+    position:relative;
+}
+
+.fun-card:hover{
+    transform:translateY(-10px) rotate(1deg);
+    box-shadow:12px 12px 0 var(--yellow);
+}
+
+.fun-card h3{
+    font:800 27px 'Syne';
+    margin:20px 0;
+}
+
+.fun-card p{
+    color:#bbb;
+    line-height:1.8;
+}
+
+.fun-card button{
+    background:var(--yellow);
+    color:#111;
+    border:0;
+    padding:13px 22px;
+    font-weight:800;
+    letter-spacing:.5px;
+    margin-top:20px;
+    cursor:pointer;
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1), background .3s, color .3s;
+}
+
+.fun-card button:hover{
+    background:var(--orange);
+    color:white;
+    transform:scale(1.08) translateY(-2px);
+    box-shadow:4px 4px 0 var(--yellow);
+}
+
+.fact-result{
+    margin-top:20px;
+    color:var(--yellow);
+    font-weight:700;
+    min-height:30px;
+    transition:color .3s;
+}
+
+
+/* CONTACT */
+.contact{
+    text-align:center;
+    padding:150px 9%;
+}
+
+.contact h2{
+    font:800 clamp(50px,10vw,110px) 'Syne';
+    letter-spacing:-7px;
+    line-height:.95;
+}
+
+.contact h2 span{
+    color:var(--orange);
+    display:inline-block;
+    transition:transform .3s;
+}
+
+.contact h2:hover span{
+    transform:rotate(-3deg) scale(1.05);
+}
+
+.contact p{
+    color:var(--muted);
+    margin:30px auto;
+    max-width:500px;
+    line-height:1.8;
+}
+
+.contact-links{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+/* FOOTER */
+footer{
+    padding:30px 9%;
+    border-top:1px solid #ffffff20;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:15px;
+    color:var(--muted);
+    font-size:12px;
+    position:relative;
+    z-index:2;
+}
+
+/* CONFETTI & PARTICLES */
+.confetti{
+    position:fixed;
+    font-size:18px;
+    z-index:99999;
+    pointer-events:none;
+    animation:confettiFall 1.5s cubic-bezier(0.25,1,0.5,1) forwards;
+}
+
+@keyframes confettiFall{
+    to{
+        transform:translate(var(--x),var(--y)) rotate(720deg) scale(0.2);
+        opacity:0;
+    }
+}
+
+/* TOAST NOTIFICATIONS */
+.toast-container{
+    position:fixed;
+    bottom:25px;
+    right:25px;
+    z-index:100000;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    pointer-events:none;
+}
+
+.toast{
+    background:#111;
+    color:var(--yellow);
+    border:2px solid var(--yellow);
+    padding:12px 20px;
+    font:800 12px 'Space Grotesk';
+    box-shadow:6px 6px 0 var(--orange);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    transform:translateX(120%);
+    animation:toastSlide 3.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+
+@keyframes toastSlide{
+    0%{transform:translateX(120%)}
+    15%,85%{transform:translateX(0%)}
+    100%{transform:translateX(120%)}
+}
+
+/* SCREEN SHAKE GLITCH */
+@keyframes screenChaos{
+    0%{transform:translate(0,0) rotate(0deg)}
+    20%{transform:translate(-8px,6px) rotate(-1deg);filter:hue-rotate(90deg)}
+    40%{transform:translate(7px,-5px) rotate(1.5deg)}
+    60%{transform:translate(-6px,-4px) rotate(-1deg);filter:invert(0.15)}
+    80%{transform:translate(5px,6px) rotate(1deg)}
+    100%{transform:translate(0,0) rotate(0deg);filter:none}
+}
+
+.chaos-active{
+    animation:screenChaos .45s ease;
+}
+
+/* KEYBOARD SHORTCUTS PILL */
+.keyboard-hint{
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    background:#111;
+    border:1px solid #ffffff20;
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:11px;
+    color:var(--muted);
+    margin-top:15px;
+}
+
+.key-kbd{
+    background:var(--yellow);
+    color:#111;
+    font-weight:800;
+    padding:2px 6px;
+    border-radius:3px;
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+    .nav-links{display:none}
+    .hero-circle-wrap{right:-80px}
+    .sticker.one{right:5%}
+    .about-grid{grid-template-columns:1fr}
+}
+
+@media(max-width:650px){
+    section{padding:85px 7%}
+    .hero{padding:140px 7% 100px}
+    .hero h1{letter-spacing:-5px}
+    .hero-circle-wrap{opacity:.25;right:-120px}
+    .sticker{font-size:45px}
+    .project-grid,.fun-grid{grid-template-columns:1fr}
+    .hero-bottom{left:7%;right:7%}
+    .about-card{padding:30px}
+    .certificate{padding:30px}
+    .contact h2{letter-spacing:-4px}
+    footer{flex-direction:column}
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOP SCROLL PROGRESS BAR -->
+<div class="scroll-progress-bar" id="progressBar"></div>
+
+<!-- BACKGROUND CANVAS FOR AMBIENT PARTICLES -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- FOREGROUND CANVAS FOR CURSOR TRAILS & EXPLOSIONS -->
+<canvas id="fx-canvas"></canvas>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+    <h1>AASHNA.</h1>
+    <div class="loader-line"></div>
+    <p>LOADING THE FUN...</p>
+</div>
+
+<!-- CURSORS -->
+<div class="cursor"></div>
+<div class="cursor-ring"></div>
+
+<!-- NAVIGATION -->
+<nav>
+    <a href="#home" class="logo scramble-word">AASHNA<span>.EXE</span></a>
+
+    <div class="nav-links">
+        <a href="#about">ABOUT</a>
+        <a href="#journey">JOURNEY</a>
+        <a href="#projects">PROJECTS</a>
+        <a href="#skills">SKILLS</a>
+        <a href="#fun">FUN ZONE</a>
+    </div>
+
+    <div class="nav-actions">
+        <button class="nav-btn" id="theme">☀ THEME</button>
+        <button class="nav-btn" id="sound">
+            <span id="soundText">♫ SOUND OFF</span>
+            <span class="eq-bars">
+                <span class="eq-bar"></span>
+                <span class="eq-bar"></span>
+                <span class="eq-bar"></span>
+            </span>
+        </button>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+
+    <div class="hero-content">
+
+        <div class="hero-label">
+            <span>⚡ NOT YOUR USUAL PORTFOLIO</span>
+            <span>•</span>
+            <span class="role-flipper" id="roleFlipper">CSE + AI UNDERGRAD</span>
+        </div>
+
+        <h1>
+            <span class="scramble-word">HEY,</span><br>
+            <span class="scramble-word">I'M</span> <span class="blue scramble-word">AASHNA</span><br>
+            <span class="orange scramble-word">MEHTA.</span>
+        </h1>
+
+        <p class="hero-description">
+            CSE + AI student. Developer in progress.
+            Professional overthinker. Creative mind.
+            Turning random ideas into actual things.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="#projects" class="btn btn-main">EXPLORE MY CHAOS ↗</a>
+            <a href="#about" class="btn btn-outline">GET TO KNOW ME</a>
+        </div>
+
+        <div class="keyboard-hint">
+            <span>TRY PRESSING:</span>
+            <span class="key-kbd">C</span> <span>CONFETTI</span>
+            <span class="key-kbd">B</span> <span>BOUNCE</span>
+            <span class="key-kbd">T</span> <span>THEME</span>
+        </div>
+
+    </div>
+
+    <!-- GYROSCOPE RINGS -->
+    <div class="hero-circle-wrap">
+        <div class="gyro-ring outer"></div>
+        <div class="gyro-ring middle">
+            <div class="gyro-satellite"></div>
+        </div>
+        <div class="gyro-ring inner"></div>
+    </div>
+
+    <!-- INTERACTIVE CLICKABLE PARALLAX STICKERS -->
+    <div class="sticker one" id="stickerUfo" data-depth="0.06" title="Click me!">
+        🛸
+        <div class="sticker-bubble" id="ufoBubble">WARP DRIVE ACTIVATED! 🚀</div>
+    </div>
+    <div class="sticker two" id="stickerLightning" data-depth="0.04" title="Click me!">
+        ⚡
+        <div class="sticker-bubble" id="lightningBubble">1.21 GIGAWATTS! ⚡</div>
+    </div>
+    <div class="sticker three" id="stickerAlien" data-depth="0.09" title="Click me!">
+        👾
+        <div class="sticker-bubble" id="alienBubble">BEEP BOOP HUMAN! 👽</div>
+    </div>
+
+    <div class="hero-bottom">
+        <span>SCROLL TO EXPLORE ↓</span>
+        <span>BUILT WITH CURIOSITY & HIGH-VOLTAGE CODE ⚡</span>
+    </div>
+
+</section>
+
+<!-- DUAL MARQUEE -->
+<div class="marquee-container">
+    <div class="marquee primary">
+        <div class="marquee-track">
+            <span>CREATIVE THINKING ✦</span>
+            <span>BUILDING COOL STUFF ✦</span>
+            <span>ARTIFICIAL INTELLIGENCE ✦</span>
+            <span>GOOD IDEAS ONLY ✦</span>
+            <span>HIGH OCTANE CODE ✦</span>
+            <span>CREATIVE THINKING ✦</span>
+            <span>BUILDING COOL STUFF ✦</span>
+            <span>ARTIFICIAL INTELLIGENCE ✦</span>
+            <span>GOOD IDEAS ONLY ✦</span>
+            <span>HIGH OCTANE CODE ✦</span>
+        </div>
+    </div>
+
+    <div class="marquee secondary">
+        <div class="marquee-track reverse">
+            <span>⚡ PYTHON & ML</span>
+            <span>✦ DATA SCIENCE</span>
+            <span>✦ STREAMLIT APPS</span>
+            <span>✦ MICROSOFT AZURE</span>
+            <span>✦ COMPUTER SCIENCE</span>
+            <span>✦ NEVER STOP EXPLORING</span>
+            <span>⚡ PYTHON & ML</span>
+            <span>✦ DATA SCIENCE</span>
+            <span>✦ STREAMLIT APPS</span>
+            <span>✦ MICROSOFT AZURE</span>
+            <span>✦ COMPUTER SCIENCE</span>
+            <span>✦ NEVER STOP EXPLORING</span>
+        </div>
+    </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+
+    <div class="about-grid">
+
+        <div class="reveal">
+
+            <div class="tag">01 / THE HUMAN BEHIND THE SCREEN</div>
+
+            <h2 class="heading">WHO'S <span>THIS?</span></h2>
+
+            <div class="about-text">
+
+                <p>
+                    Hey! I'm Aashna Mehta, a Computer Science Engineering
+                    student specialising in Artificial Intelligence
+                    at Shoolini University.
+                </p>
+
+                <p>
+                    I love exploring technology, building projects,
+                    experimenting with new ideas and learning things
+                    that make me think differently.
+                </p>
+
+                <p>
+                    I'm interested in AI, programming, data analytics
+                    and creating things that people actually enjoy using.
+                </p>
+
+                <p>
+                    Basically, curious mind. Big ideas. Still figuring
+                    things out. Always building something.
+                </p>
+
+            </div>
+
+            <div class="stats">
+
+                <div class="stat">
+                    <strong class="counter" data-target="6">0</strong>
+                    <small>PROJECTS</small>
+                </div>
+
+                <div class="stat">
+                    <strong class="counter" data-target="1">0</strong>
+                    <small>CERTIFICATION</small>
+                </div>
+
+                <div class="stat">
+                    <strong id="infinityStat">∞</strong>
+                    <small>IDEAS</small>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="about-card reveal">
+
+            <div class="emoji">🧠</div>
+
+            <h3>TOO CURIOUS TO STAY IN ONE BOX.</h3>
+
+            <p>
+                Exploring the intersection of technology,
+                creativity and problem-solving.
+                Currently learning. Constantly experimenting.
+            </p>
+
+            <br>
+
+            <div class="live-badge">
+                <span class="live-dot"></span>
+                <span>STATUS: ALWAYS EXPERIMENTING...</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="ticker reveal">
+        <div class="ticker-item">☕ COFFEE & IDEAS</div>
+        <div class="ticker-item">💻 CODE & CREATE</div>
+        <div class="ticker-item">🎧 MUSIC MODE</div>
+        <div class="ticker-item">🚀 BIG DREAMS</div>
+    </div>
+
+</section>
+
+<!-- JOURNEY -->
+<section id="journey">
+
+    <div class="reveal">
+        <div class="tag">02 / THE STORY SO FAR</div>
+        <h2 class="heading">MY <span>JOURNEY.</span></h2>
+    </div>
+
+    <div class="timeline">
+        <div class="timeline-laser" id="timelineLaser"></div>
+
+        <div class="timeline-item reveal">
+            <h3>🎓 B.Tech CSE – Artificial Intelligence</h3>
+            <small>2025 – 2029 | Shoolini University</small>
+            <p>
+                Exploring computer science, AI, programming
+                and emerging technologies.
+            </p>
+        </div>
+
+        <div class="timeline-item reveal">
+            <h3>☁ Microsoft Azure Fundamentals</h3>
+            <small>CERTIFICATION</small>
+            <p>
+                Learning cloud computing concepts and
+                understanding the Microsoft Azure ecosystem.
+            </p>
+        </div>
+
+        <div class="timeline-item reveal">
+            <h3>💻 Project Development</h3>
+            <small>ONGOING</small>
+            <p>
+                Building projects around analytics, Python,
+                machine learning and web applications.
+            </p>
+        </div>
+
+        <div class="timeline-item reveal">
+            <h3>⚡ Campus Activities & Leadership</h3>
+            <small>UNIVERSITY EXPERIENCE</small>
+            <p>
+                Exploring student leadership, volunteering,
+                communication and campus initiatives.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+
+    <div class="reveal">
+        <div class="tag">03 / STUFF I'VE BUILT</div>
+        <h2 class="heading">MY LITTLE <span>UNIVERSE.</span></h2>
+    </div>
+
+    <div class="project-grid">
+
+        <div class="project reveal">
+            <div class="project-glare"></div>
+            <div class="project-content">
+                <div class="project-number">01 / DATA ANALYTICS</div>
+                <div><span class="project-emoji">📊</span></div>
+                <h3>HR ANALYTICS</h3>
+                <p>
+                    Exploring employee datasets, workforce patterns
+                    and discovering meaningful insights.
+                </p>
+                <div class="project-footer">
+                    <span>PYTHON • ANALYTICS</span>
+                    <span class="project-arrow">↗</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="project reveal">
+            <div class="project-glare"></div>
+            <div class="project-content">
+                <div class="project-number">02 / DATA EXPLORATION</div>
+                <div><span class="project-emoji">🦠</span></div>
+                <h3>COVID ANALYSIS</h3>
+                <p>
+                    Exploring COVID-19 datasets through data analysis
+                    and visualisation.
+                </p>
+                <div class="project-footer">
+                    <span>PYTHON • PANDAS</span>
+                    <span class="project-arrow">↗</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="project reveal">
+            <div class="project-glare"></div>
+            <div class="project-content">
+                <div class="project-number">03 / ANALYTICS</div>
+                <div><span class="project-emoji">📈</span></div>
+                <h3>ADVERTISING ANALYSIS</h3>
+                <p>
+                    Exploring campaign metrics and understanding
+                    relationships within advertising data.
+                </p>
+                <div class="project-footer">
+                    <span>PYTHON • DATA</span>
+                    <span class="project-arrow">↗</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="project reveal">
+            <div class="project-glare"></div>
+            <div class="project-content">
+                <div class="project-number">04 / PRODUCTIVITY</div>
+                <div><span class="project-emoji">📅</span></div>
+                <h3>STUDY PLANNER</h3>
+                <p>
+                    A productivity project designed to organise
+                    study schedules and tasks.
+                </p>
+                <div class="project-footer">
+                    <span>PYTHON • PRODUCTIVITY</span>
+                    <span class="project-arrow">↗</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="project reveal">
+            <div class="project-glare"></div>
+            <div class="project-content">
+                <div class="project-number">05 / MACHINE LEARNING</div>
+                <div><span class="project-emoji">🤖</span></div>
+                <h3>ML EXPERIMENTS</h3>
+                <p>
+                    Exploring Iris classification, car price prediction
+                    and sales applications.
+                </p>
+                <div class="project-footer">
+                    <span>STREAMLIT • ML</span>
+                    <span class="project-arrow">↗</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="project reveal">
+            <div class="project-glare"></div>
+            <div class="project-content">
+                <div class="project-number">06 / CREATIVE TECH</div>
+                <div><span class="project-emoji">🎹</span></div>
+                <h3>MIDI GENERATOR</h3>
+                <p>
+                    Exploring the connection between music
+                    and programming through MIDI generation.
+                </p>
+                <div class="project-footer">
+                    <span>PYTHON • MUSIC TECH</span>
+                    <span class="project-arrow">↗</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+
+    <div class="reveal">
+        <div class="tag">04 / MY TOOLKIT</div>
+        <h2 class="heading">THINGS I <span>KNOW.</span></h2>
+    </div>
+
+    <div class="skills-container reveal">
+
+        <div class="skill" data-particle="🐍">PYTHON 🐍</div>
+        <div class="skill" data-particle="🌐">HTML 🌐</div>
+        <div class="skill" data-particle="🎨">CSS 🎨</div>
+        <div class="skill" data-particle="⚡">JAVASCRIPT ⚡</div>
+        <div class="skill" data-particle="🚀">STREAMLIT 🚀</div>
+        <div class="skill" data-particle="📊">PANDAS 📊</div>
+        <div class="skill" data-particle="🤖">MACHINE LEARNING 🤖</div>
+        <div class="skill" data-particle="🐙">GIT & GITHUB 🐙</div>
+        <div class="skill" data-particle="📈">DATA ANALYTICS 📈</div>
+        <div class="skill" data-particle="☁️">AZURE ☁️</div>
+        <div class="skill" data-particle="🧩">PROBLEM SOLVING 🧩</div>
+        <div class="skill" data-particle="💡">CREATIVE THINKING 💡</div>
+
+    </div>
+
+</section>
+
+<!-- CERTIFICATION -->
+<section id="certification">
+
+    <div class="tag reveal">05 / OFFICIAL ACHIEVEMENTS</div>
+
+    <div class="certificate reveal">
+
+        <div>
+            <h3>☁ MICROSOFT AZURE</h3>
+            <p>Microsoft Azure Fundamentals Certification</p>
+            <p>Cloud Computing • Fundamentals</p>
+        </div>
+
+        <div class="trophy-bounce">🏆</div>
+
+    </div>
+
+</section>
+
+<!-- FUN ZONE -->
+<section class="fun-section" id="fun">
+
+    <div class="reveal">
+        <div class="tag">06 / NO BORING STUFF ALLOWED</div>
+        <h2 class="heading">WELCOME TO THE <span>FUN ZONE.</span></h2>
+    </div>
+
+    <div class="fun-grid">
+
+        <div class="fun-card reveal">
+            <div style="font-size:45px">🎲</div>
+            <h3>RANDOM GENERATOR</h3>
+            <p>
+                Feeling curious? Get a random fact
+                about my portfolio.
+            </p>
+
+            <button id="factBtn">SURPRISE ME ↗</button>
+
+            <div class="fact-result" id="factResult">
+                Waiting for your curiosity...
+            </div>
+        </div>
+
+        <div class="fun-card reveal">
+            <div style="font-size:45px">💥</div>
+            <h3>THE CHAOS BUTTON</h3>
+            <p>
+                There is absolutely no practical reason
+                to click this button.
+            </p>
+
+            <button id="chaosBtn">RELEASE CHAOS</button>
+
+            <div class="fact-result" id="chaosResult"></div>
+        </div>
+
+        <div class="fun-card reveal">
+            <div style="font-size:45px">🧠</div>
+            <h3>ARE YOU CURIOUS?</h3>
+            <p>
+                Click below to discover a little
+                something about this portfolio.
+            </p>
+
+            <button id="secretBtn">UNLOCK SECRET</button>
+
+            <div class="fact-result" id="secretResult"></div>
+        </div>
+
+        <div class="fun-card reveal">
+            <div style="font-size:45px">🎨</div>
+            <h3>COLOR REMIX</h3>
+            <p>
+                Don't like the current vibe?
+                Give this playground a new colour.
+            </p>
+
+            <button id="colorBtn">REMIX THE COLORS</button>
+
+            <div class="fact-result" id="colorResult"></div>
+        </div>
+
+    </div>
+
+
+
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+
+    <div class="tag reveal">07 / END OF THE INTERNET?</div>
+
+    <h2 class="reveal">
+        LET'S MAKE<br>
+        <span class="scramble-word">COOL STUFF.</span>
+    </h2>
+
+    <p class="reveal">
+        Have an interesting idea, collaboration opportunity
+        or just want to connect? My inbox is open!
+    </p>
+
+    <div class="contact-links reveal">
+
+        <a class="btn btn-main"
+        href="https://www.linkedin.com/in/aashna-mehta-937322392/"
+        target="_blank">
+            LINKEDIN ↗
+        </a>
+
+        <a class="btn btn-outline"
+        href="https://github.com/aaasshhnaaa"
+        target="_blank">
+            GITHUB ↗
+        </a>
+
+    </div>
+
+</section>
+
+<footer>
+    <span>© 2026 AASHNA MEHTA</span>
+    <span>MADE WITH CURIOSITY, CHAOS & CODE ⚡</span>
+    <span>AASHNA.EXE — ANIMATION HYPERDRIVE VERSION</span>
+</footer>
+
+<script>
+
+/* ========================================================
+   1. LOADER DISMISS
+   ======================================================== */
+window.addEventListener("load", () => {
+    setTimeout(() => {
+        document.getElementById("loader").classList.add("hide");
+        showToast("⚡ Welcome to Aashna.exe! Enjoy the animations!");
+    }, 1900);
+});
+
+
+/* ========================================================
+   2. TOP SCROLL PROGRESS & TIMELINE LASER
+   ======================================================== */
+const progressBar = document.getElementById("progressBar");
+const timelineLaser = document.getElementById("timelineLaser");
+const timelineEl = document.querySelector(".timeline");
+
+function updateScrollMetrics(){
+    const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = (winScroll / height) * 100;
+    if(progressBar) progressBar.style.width = scrolled + "%";
+
+    if(timelineEl && timelineLaser){
+        const rect = timelineEl.getBoundingClientRect();
+        const winHeight = window.innerHeight;
+        if(rect.top < winHeight && rect.bottom > 0){
+            const progress = Math.min(Math.max((winHeight * 0.7 - rect.top) / rect.height, 0), 1);
+            timelineLaser.style.height = (progress * 100) + "%";
+        }
+    }
+}
+window.addEventListener("scroll", updateScrollMetrics, {passive: true});
+
+
+/* ========================================================
+   3. WEB AUDIO SYNTHESIZER ENGINE
+   ======================================================== */
+let soundEnabled = false;
+let audioContext = null;
+
+function getAudioContext(){
+    if(!audioContext){
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(audioContext.state === "suspended"){
+        audioContext.resume();
+    }
+    return audioContext;
+}
+
+function playSound(frequency = 500, duration = 0.12, type = "sine", gainAmount = 0.07){
+    if(!soundEnabled) return;
+    try{
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+
+        gain.gain.setValueAtTime(gainAmount, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+    }catch(err){}
+}
+
+function playArpeggio(notes = [523, 659, 784, 1046], speed = 0.06, type = "triangle"){
+    if(!soundEnabled) return;
+    notes.forEach((freq, i) => {
+        setTimeout(() => {
+            playSound(freq, 0.15, type, 0.08);
+        }, i * (speed * 1000));
+    });
+}
+
+function playChaosSound(){
+    if(!soundEnabled) return;
+    const wildNotes = [300, 450, 600, 800, 1100, 1400, 950, 1200, 1600];
+    playArpeggio(wildNotes, 0.04, "sawtooth");
+}
+
+const soundBtn = document.getElementById("sound");
+soundBtn.addEventListener("click", () => {
+    soundEnabled = !soundEnabled;
+    const soundText = document.getElementById("soundText");
+
+    if(soundEnabled){
+        getAudioContext();
+        soundText.textContent = "♫ SOUND ON";
+        soundBtn.classList.add("sound-active");
+        playArpeggio([440, 554, 659, 880], 0.08, "sine");
+        showToast("🔊 Sound Effects: ACTIVATED!");
+    } else {
+        soundText.textContent = "♫ SOUND OFF";
+        soundBtn.classList.remove("sound-active");
+    }
+});
+
+
+/* ========================================================
+   4. TOAST NOTIFICATION SYSTEM
+   ======================================================== */
+const toastContainer = document.getElementById("toastContainer");
+function showToast(message){
+    if(!toastContainer) return;
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+        toast.remove();
+    }, 3600);
+}
+
+
+/* ========================================================
+   5. AMBIENT BACKGROUND PARTICLES CANVAS
+   ======================================================== */
+const bgCanvas = document.getElementById("bg-canvas");
+const bgCtx = bgCanvas.getContext("2d");
+
+let bgWidth = bgCanvas.width = window.innerWidth;
+let bgHeight = bgCanvas.height = window.innerHeight;
+
+window.addEventListener("resize", () => {
+    bgWidth = bgCanvas.width = window.innerWidth;
+    bgHeight = bgCanvas.height = window.innerHeight;
+});
+
+const glyphTypes = ["✦", "+", "×", "○", "▲", "■", "⚡", "●"];
+const themeColors = ["#e9ff48", "#ff6536", "#4357ff", "#a58aff", "#ffffff"];
+
+class AmbientParticle {
+    constructor(){
+        this.reset(true);
+    }
+    reset(initial = false){
+        this.x = Math.random() * bgWidth;
+        this.y = initial ? Math.random() * bgHeight : bgHeight + 20;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = - (Math.random() * 0.4 + 0.2);
+        this.size = Math.floor(Math.random() * 12) + 10;
+        this.glyph = glyphTypes[Math.floor(Math.random() * glyphTypes.length)];
+        this.color = themeColors[Math.floor(Math.random() * themeColors.length)];
+        this.alpha = Math.random() * 0.4 + 0.15;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotSpeed = (Math.random() - 0.5) * 0.02;
+    }
+    update(mx, my){
+        this.x += this.vx;
+        this.y += this.vy;
+        this.rotation += this.rotSpeed;
+
+        // Mouse repulsion
+        const dx = this.x - mx;
+        const dy = this.y - my;
+        const dist = Math.hypot(dx, dy);
+        if(dist < 130 && dist > 0){
+            const force = (130 - dist) / 130 * 1.5;
+            this.x += (dx / dist) * force;
+            this.y += (dy / dist) * force;
+        }
+
+        if(this.y < -30 || this.x < -30 || this.x > bgWidth + 30){
+            this.reset(false);
+        }
+    }
+    draw(ctx){
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.font = `${this.size}px 'Syne', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(this.glyph, 0, 0);
+        ctx.restore();
+    }
+}
+
+const particlesCount = 38;
+const bgParticles = Array.from({length: particlesCount}, () => new AmbientParticle());
+
+let mouseScreenX = -999;
+let mouseScreenY = -999;
+
+function renderBgCanvas(){
+    bgCtx.clearRect(0, 0, bgWidth, bgHeight);
+
+    // Draw connection lines between nearby particles
+    for(let i = 0; i < bgParticles.length; i++){
+        for(let j = i + 1; j < bgParticles.length; j++){
+            const p1 = bgParticles[i];
+            const p2 = bgParticles[j];
+            const d = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+            if(d < 95){
+                bgCtx.beginPath();
+                bgCtx.strokeStyle = "#ffffff";
+                bgCtx.globalAlpha = (1 - d / 95) * 0.08;
+                bgCtx.lineWidth = 1;
+                bgCtx.setLineDash([3, 4]);
+                bgCtx.moveTo(p1.x, p1.y);
+                bgCtx.lineTo(p2.x, p2.y);
+                bgCtx.stroke();
+                bgCtx.setLineDash([]);
+            }
+        }
+    }
+
+    // Draw particles
+    bgParticles.forEach(p => {
+        p.update(mouseScreenX, mouseScreenY);
+        p.draw(bgCtx);
+    });
+
+    requestAnimationFrame(renderBgCanvas);
+}
+renderBgCanvas();
+
+
+/* ========================================================
+   6. FOREGROUND FX CANVAS (SPARKS & EXPLOSIONS)
+   ======================================================== */
+const fxCanvas = document.getElementById("fx-canvas");
+const fxCtx = fxCanvas.getContext("2d");
+
+let fxWidth = fxCanvas.width = window.innerWidth;
+let fxHeight = fxCanvas.height = window.innerHeight;
+
+window.addEventListener("resize", () => {
+    fxWidth = fxCanvas.width = window.innerWidth;
+    fxHeight = fxCanvas.height = window.innerHeight;
+});
+
+const sparkList = [];
+
+class Spark {
+    constructor(x, y, vx, vy, color, text = null, size = 6, maxAge = 50){
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.color = color;
+        this.text = text;
+        this.size = size;
+        this.age = 0;
+        this.maxAge = maxAge;
+        this.gravity = 0.15;
+    }
+    update(){
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += this.gravity;
+        this.vx *= 0.98;
+        this.age++;
+    }
+    draw(ctx){
+        const alpha = Math.max(0, 1 - this.age / this.maxAge);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = this.color;
+
+        if(this.text){
+            ctx.font = `${this.size}px 'Syne', sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(this.text, this.x, this.y);
+        } else {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, Math.max(0.5, this.size * alpha), 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+}
+
+function spawnSparks(x, y, count = 20, symbols = null, speedMulti = 1){
+    const colors = ["#e9ff48", "#ff6536", "#4357ff", "#a58aff", "#ffffff"];
+    for(let i = 0; i < count; i++){
+        const angle = Math.random() * Math.PI * 2;
+        const speed = (Math.random() * 5 + 2) * speedMulti;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed - 1;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const text = symbols ? symbols[Math.floor(Math.random() * symbols.length)] : null;
+        const size = text ? 18 : Math.random() * 4 + 2;
+        sparkList.push(new Spark(x, y, vx, vy, color, text, size, Math.floor(Math.random() * 25 + 35)));
+    }
+}
+
+function renderFxCanvas(){
+    fxCtx.clearRect(0, 0, fxWidth, fxHeight);
+    for(let i = sparkList.length - 1; i >= 0; i--){
+        const s = sparkList[i];
+        s.update();
+        s.draw(fxCtx);
+        if(s.age >= s.maxAge){
+            sparkList.splice(i, 1);
+        }
+    }
+    requestAnimationFrame(renderFxCanvas);
+}
+renderFxCanvas();
+
+
+/* ========================================================
+   7. CUSTOM CURSOR & DYNAMIC INTERACTION
+   ======================================================== */
+const cursor = document.querySelector(".cursor");
+const cursorRing = document.querySelector(".cursor-ring");
+
+let mouseX = window.innerWidth / 2;
+let mouseY = window.innerHeight / 2;
+let ringX = mouseX;
+let ringY = mouseY;
+let lastSparkTime = 0;
+
+document.addEventListener("mousemove", e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    mouseScreenX = mouseX;
+    mouseScreenY = mouseY;
+
+    cursor.style.left = mouseX + "px";
+    cursor.style.top = mouseY + "px";
+
+    // Emit trail sparks when moving fast
+    const now = performance.now();
+    if(now - lastSparkTime > 45){
+        const trailColors = ["#e9ff48", "#ff6536", "#a58aff"];
+        const randColor = trailColors[Math.floor(Math.random() * trailColors.length)];
+        sparkList.push(new Spark(
+            mouseX + (Math.random() - 0.5) * 6,
+            mouseY + (Math.random() - 0.5) * 6,
+            (Math.random() - 0.5) * 1.5,
+            (Math.random() - 0.5) * 1.5,
+            randColor,
+            Math.random() > 0.7 ? "✦" : null,
+            Math.random() > 0.7 ? 11 : 3,
+            24
+        ));
+        lastSparkTime = now;
+    }
+});
+
+function cursorMove(){
+    ringX += (mouseX - ringX) * 0.18;
+    ringY += (mouseY - ringY) * 0.18;
+
+    cursorRing.style.left = ringX + "px";
+    cursorRing.style.top = ringY + "px";
+
+    requestAnimationFrame(cursorMove);
+}
+cursorMove();
+
+// Click shockwave
+document.addEventListener("click", e => {
+    const ripple = document.createElement("div");
+    ripple.className = "click-ripple";
+    ripple.style.left = e.clientX + "px";
+    ripple.style.top = e.clientY + "px";
+    document.body.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 550);
+
+    spawnSparks(e.clientX, e.clientY, 8);
+});
+
+// Cursor hover states
+document.querySelectorAll("a, button, .ticker-item").forEach(el => {
+    el.addEventListener("mouseenter", () => cursorRing.classList.add("hover"));
+    el.addEventListener("mouseleave", () => cursorRing.classList.remove("hover"));
+});
+
+document.querySelectorAll(".project").forEach(el => {
+    el.addEventListener("mouseenter", () => cursorRing.classList.add("view-mode"));
+    el.addEventListener("mouseleave", () => cursorRing.classList.remove("view-mode"));
+});
+
+
+
+/* ========================================================
+   8. TEXT SCRAMBLE / CIPHER DECODER EFFECT
+   ======================================================== */
+const cipherGlyphs = "✦_#@%&<>*!0123456789AZ";
+
+function scrambleText(element, finalText = null){
+    const original = finalText || element.dataset.originalText || element.innerText;
+    element.dataset.originalText = original;
+
+    let iteration = 0;
+    const maxIterations = original.length;
+
+    clearInterval(element._scrambleTimer);
+    element._scrambleTimer = setInterval(() => {
+        element.innerText = original.split("").map((letter, index) => {
+            if(index < iteration) {
+                return original[index];
+            }
+            if(letter === " " || letter === "\n") return letter;
+            return cipherGlyphs[Math.floor(Math.random() * cipherGlyphs.length)];
+        }).join("");
+
+        if(iteration >= maxIterations){
+            clearInterval(element._scrambleTimer);
+            element.innerText = original;
+        }
+        iteration += 1 / 2;
+    }, 28);
+}
+
+document.querySelectorAll(".scramble-word").forEach(el => {
+    el.dataset.originalText = el.innerText;
+    el.addEventListener("mouseenter", () => {
+        scrambleText(el);
+        playSound(950, 0.05, "sine", 0.04);
+    });
+});
+
+// Initial scramble on hero title
+setTimeout(() => {
+    document.querySelectorAll(".hero h1 .scramble-word").forEach((el, i) => {
+        setTimeout(() => scrambleText(el), i * 150);
+    });
+}, 2100);
+
+
+/* ========================================================
+   9. HERO ROLE FLIPPER
+   ======================================================== */
+const roles = [
+    "CSE + AI UNDERGRAD",
+    "PYTHON DEVELOPER",
+    "DATA EXPLORER",
+    "CREATIVE TECH BUILDER",
+    "IDEA ACCELERATOR",
+    "MACHINE LEARNING FAN"
+];
+
+let roleIndex = 0;
+const roleFlipper = document.getElementById("roleFlipper");
+
+setInterval(() => {
+    if(!roleFlipper) return;
+    roleIndex = (roleIndex + 1) % roles.length;
+    roleFlipper.style.opacity = "0";
+    roleFlipper.style.transform = "rotateX(90deg)";
+
+    setTimeout(() => {
+        roleFlipper.textContent = roles[roleIndex];
+        roleFlipper.style.opacity = "1";
+        roleFlipper.style.transform = "rotateX(0deg)";
+    }, 250);
+}, 2700);
+
+
+/* ========================================================
+   10. INTERACTIVE HERO STICKERS & PARALLAX
+   ======================================================== */
+const stickers = document.querySelectorAll(".sticker");
+
+window.addEventListener("mousemove", e => {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    const dx = (e.clientX - cx) / cx;
+    const dy = (e.clientY - cy) / cy;
+
+    stickers.forEach(st => {
+        const depth = parseFloat(st.dataset.depth) || 0.05;
+        st.style.transform = `translate(${dx * depth * 140}px, ${dy * depth * 140}px)`;
+    });
+
+    const gyro = document.querySelector(".hero-circle-wrap");
+    if(gyro){
+        gyro.style.transform = `translate(${dx * 25}px, ${dy * 25}px)`;
+    }
+});
+
+// UFO Click
+const stickerUfo = document.getElementById("stickerUfo");
+const ufoBubble = document.getElementById("ufoBubble");
+if(stickerUfo){
+    stickerUfo.addEventListener("click", () => {
+        ufoBubble.classList.add("show");
+        spawnSparks(stickerUfo.getBoundingClientRect().left + 40, stickerUfo.getBoundingClientRect().top + 40, 25, ["✨", "🚀", "🛸", "✦"]);
+        playArpeggio([600, 900, 1200, 1500, 2000], 0.05, "sine");
+
+        stickerUfo.animate([
+            { transform: "rotate(0deg) scale(1)" },
+            { transform: "translateY(-60px) rotate(360deg) scale(1.4)" },
+            { transform: "translateY(0) rotate(720deg) scale(1)" }
+        ], { duration: 750, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" });
+
+        setTimeout(() => ufoBubble.classList.remove("show"), 2500);
+        showToast("🛸 UFO warp speed engaged!");
+    });
+}
+
+// Lightning Click
+const stickerLightning = document.getElementById("stickerLightning");
+const lightningBubble = document.getElementById("lightningBubble");
+if(stickerLightning){
+    stickerLightning.addEventListener("click", () => {
+        lightningBubble.classList.add("show");
+        document.body.classList.add("chaos-active");
+        setTimeout(() => document.body.classList.remove("chaos-active"), 450);
+
+        spawnSparks(stickerLightning.getBoundingClientRect().left + 40, stickerLightning.getBoundingClientRect().top + 40, 30, ["⚡", "✹", "💥", "★"]);
+        playSound(200, 0.35, "sawtooth", 0.15);
+
+        setTimeout(() => lightningBubble.classList.remove("show"), 2500);
+        showToast("⚡ High voltage strike!");
+    });
+}
+
+// Alien Click
+const stickerAlien = document.getElementById("stickerAlien");
+const alienBubble = document.getElementById("alienBubble");
+if(stickerAlien){
+    stickerAlien.addEventListener("click", () => {
+        alienBubble.classList.add("show");
+        spawnSparks(stickerAlien.getBoundingClientRect().left + 40, stickerAlien.getBoundingClientRect().top + 40, 25, ["👾", "👽", "🛸", "✦"]);
+        playArpeggio([400, 600, 500, 750, 900], 0.07, "triangle");
+
+        stickerAlien.animate([
+            { transform: "scale(1) rotate(0deg)" },
+            { transform: "scale(1.5, 0.7) rotate(20deg)" },
+            { transform: "scale(0.8, 1.4) rotate(-20deg)" },
+            { transform: "scale(1) rotate(0deg)" }
+        ], { duration: 600, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" });
+
+        setTimeout(() => alienBubble.classList.remove("show"), 2500);
+        showToast("👽 Alien transmission received!");
+    });
+}
+
+
+/* ========================================================
+   11. MAGNETIC BUTTONS
+   ======================================================== */
+document.querySelectorAll(".btn, .nav-btn, .ticker-item").forEach(btn => {
+    btn.addEventListener("mousemove", e => {
+        const rect = btn.getBoundingClientRect();
+        const bx = rect.left + rect.width / 2;
+        const by = rect.top + rect.height / 2;
+        const dist = Math.hypot(e.clientX - bx, e.clientY - by);
+
+        if(dist < 50){
+            const pullX = (e.clientX - bx) * 0.28;
+            const pullY = (e.clientY - by) * 0.28;
+            btn.style.transform = `translate(${pullX}px, ${pullY}px)`;
+        }
+    });
+
+    btn.addEventListener("mouseleave", () => {
+        btn.style.transform = "";
+    });
+});
+
+
+/* ========================================================
+   12. 3D PROJECT TILT WITH DYNAMIC SPECULAR GLARE
+   ======================================================== */
+document.querySelectorAll(".project").forEach(card => {
+    const glare = card.querySelector(".project-glare");
+
+    card.addEventListener("mousemove", e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const rotateY = (x / rect.width - 0.5) * 16;
+        const rotateX = (y / rect.height - 0.5) * -16;
+
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.025)`;
+
+        if(glare){
+            card.style.setProperty("--gx", (x / rect.width * 100) + "%");
+            card.style.setProperty("--gy", (y / rect.height * 100) + "%");
+        }
+    });
+
+    card.addEventListener("mouseleave", () => {
+        card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)";
+    });
+
+    card.addEventListener("click", e => {
+        spawnSparks(e.clientX, e.clientY, 15, ["📊", "⚡", "✦", "↗"]);
+        playSound(850, 0.12, "sine", 0.08);
+    });
+});
+
+
+/* ========================================================
+   13. SKILLS EMOJI CANNONS
+   ======================================================== */
+document.querySelectorAll(".skill").forEach(skill => {
+    skill.addEventListener("click", e => {
+        const particleChar = skill.dataset.particle || "✦";
+        spawnSparks(e.clientX, e.clientY, 14, [particleChar, "✦", "⚡"], 1.3);
+        playArpeggio([523, 659, 784], 0.05, "sine");
+    });
+
+    skill.addEventListener("mouseenter", () => {
+        playSound(700, 0.06, "sine", 0.04);
+    });
+});
+
+
+/* ========================================================
+   14. SCROLL REVEAL OBSERVER
+   ======================================================== */
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if(entry.isIntersecting){
+            entry.target.classList.add("visible");
+        }
+    });
+}, { threshold: 0.12 });
+
+document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+
+
+/* ========================================================
+   15. ANIMATED STATS COUNTERS
+   ======================================================== */
+const counterObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if(!entry.isIntersecting) return;
+        const el = entry.target;
+        const target = Number(el.dataset.target);
+        let count = 0;
+
+        const interval = setInterval(() => {
+            count++;
+            el.textContent = count + "+";
+            if(count >= target){
+                clearInterval(interval);
+                const rect = el.getBoundingClientRect();
+                spawnSparks(rect.left + rect.width / 2, rect.top + rect.height / 2, 10);
+            }
+        }, 110);
+
+        counterObserver.unobserve(el);
+    });
+});
+
+document.querySelectorAll(".counter").forEach(el => counterObserver.observe(el));
+
+
+/* ========================================================
+   16. THEME SWITCHER
+   ======================================================== */
+document.getElementById("theme").addEventListener("click", () => {
+    document.body.classList.toggle("light");
+    const isLight = document.body.classList.contains("light");
+
+    document.getElementById("theme").textContent = isLight ? "🌙 THEME" : "☀ THEME";
+    playSound(440, 0.15, "triangle");
+    showToast(isLight ? "☀ Switched to Daylight Theme!" : "🌙 Switched to Cyber Dark Theme!");
+});
+
+
+/* ========================================================
+   17. RANDOM FACT GENERATOR (WITH CIPHER DECODE)
+   ======================================================== */
+const facts = [
+    "This portfolio has a little bit of everything! ⚡",
+    "Python is one of my favourite creative tools. 🐍",
+    "Currently exploring Artificial Intelligence algorithms. 🤖",
+    "Crafted with HTML, CSS, JavaScript & pure caffeine. 💻",
+    "A curious mind never runs out of questions. 💡",
+    "Welcome to the less boring side of technology. 🚀",
+    "Six projects built, hundreds of ideas in queue!",
+    "Music and code activate the exact same creative neural paths. 🎧"
+];
+
+document.getElementById("factBtn").addEventListener("click", () => {
+    const fact = facts[Math.floor(Math.random() * facts.length)];
+    const factResult = document.getElementById("factResult");
+    scrambleText(factResult, fact);
+    playSound(750, 0.15, "sine", 0.08);
+});
+
+
+/* ========================================================
+   18. CHAOS BUTTON: FULL 360° RADIAL EXPLOSION
+   ======================================================== */
+document.getElementById("chaosBtn").addEventListener("click", e => {
+    const rect = e.target.getBoundingClientRect();
+    const bx = rect.left + rect.width / 2;
+    const by = rect.top + rect.height / 2;
+
+    document.getElementById("chaosResult").textContent = "💥 CHAOS HYPERDRIVE ACTIVATED! 💥";
+
+    // 100+ particle radial explosion
+    spawnSparks(bx, by, 75, ["⚡", "✦", "★", "●", "✹", "◆", "🎉", "💥", "👾"], 2.2);
+    confettiRain();
+
+    // Screen chromatic glitch shake
+    document.body.classList.add("chaos-active");
+    setTimeout(() => document.body.classList.remove("chaos-active"), 450);
+
+    playChaosSound();
+    showToast("🏆 Achievement: CHAOS CONQUEROR!");
+});
+
+
+/* ========================================================
+   19. SECRET BUTTON
+   ======================================================== */
+let secretCount = 0;
+document.getElementById("secretBtn").addEventListener("click", () => {
+    secretCount++;
+    const messages = [
+        "SECRET UNLOCKED: YOU HAVE EXCELLENT TASTE. 😎",
+        "LEVEL 2: YOU FOUND THE HIDDEN CORNER OF THE INTERNET. 🛸",
+        "LEVEL 3: YOU ARE OFFICIALLY PART OF THE AASHNA.EXE CLUB. ⚡",
+        "FINAL LEVEL: KEEP EXPLORING. THERE IS ALWAYS SOMETHING NEW. 🌟"
+    ];
+
+    const secretResult = document.getElementById("secretResult");
+    scrambleText(secretResult, messages[Math.min(secretCount - 1, messages.length - 1)]);
+
+    confettiRain();
+    playArpeggio([523, 659, 784, 1046], 0.06, "sine");
+});
+
+
+/* ========================================================
+   20. COLOR REMIX WAVE
+   ======================================================== */
+const colorPalettes = [
+    ["#4357ff", "#ff6536", "#e9ff48"],
+    ["#8b5cf6", "#00e5ff", "#facc15"],
+    ["#ff3864", "#42e8a4", "#ffffff"],
+    ["#ff8c00", "#7c3aed", "#00e5ff"],
+    ["#00a6a6", "#ffcc00", "#ff4f00"],
+    ["#ec4899", "#8b5cf6", "#10b981"]
+];
+
+let colorIndex = 0;
+document.getElementById("colorBtn").addEventListener("click", e => {
+    colorIndex = (colorIndex + 1) % colorPalettes.length;
+    const [b, o, y] = colorPalettes[colorIndex];
+
+    document.documentElement.style.setProperty("--blue", b);
+    document.documentElement.style.setProperty("--orange", o);
+    document.documentElement.style.setProperty("--yellow", y);
+
+    document.getElementById("colorResult").textContent = "NEW VIBE UNLOCKED! 🎨";
+    spawnSparks(e.clientX, e.clientY, 30, ["🎨", "✦", "★"]);
+    playSound(600, 0.2, "triangle");
+    showToast("🎨 Palette Remixed: Fresh Vibe Loaded!");
+});
+
+
+/* ========================================================
+   21. CONFETTI RAIN SYSTEM
+   ======================================================== */
+function confettiRain(){
+    const symbols = ["⚡", "✦", "★", "●", "✹", "◆", "🎉", "🛸"];
+    for(let i = 0; i < 70; i++){
+        const piece = document.createElement("div");
+        piece.className = "confetti";
+        piece.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        piece.style.left = Math.random() * 100 + "vw";
+        piece.style.top = "-20px";
+        piece.style.setProperty("--x", (Math.random() - 0.5) * 550 + "px");
+        piece.style.setProperty("--y", Math.random() * 850 + 350 + "px");
+
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 1600);
+    }
+}
+
+
+/* ========================================================
+   22. REACTION CHALLENGE GAME WITH COMBOS & FLOATING SCORE
+   ======================================================== */
+const target = document.getElementById("target");
+const gameArea = document.getElementById("gameArea");
+const scoreEl = document.getElementById("score");
+const timeEl = document.getElementById("time");
+const bestScoreEl = document.getElementById("bestScore");
+const gameMessage = document.getElementById("gameMessage");
+
+let score = 0;
+let bestScore = parseInt(localStorage.getItem("aashna_best_score") || "0", 10);
+bestScoreEl.textContent = bestScore;
+let timeLeft = 15;
+let gameActive = false;
+let gameTimer = null;
+let combo = 0;
+
+function moveTarget(){
+    if(!gameArea || !target) return;
+    const maxX = gameArea.clientWidth - 65;
+    const maxY = gameArea.clientHeight - 65;
+    target.style.left = Math.random() * Math.max(0, maxX) + "px";
+    target.style.top = Math.random() * Math.max(0, maxY) + "px";
+}
+
+document.getElementById("startGame").addEventListener("click", () => {
+    if(gameActive) return;
+
+    score = 0;
+    timeLeft = 15;
+    combo = 0;
+    gameActive = true;
+
+    scoreEl.textContent = score;
+    timeEl.textContent = timeLeft;
+    gameMessage.textContent = "GO GO GO! CLICK THE LIGHTNING!";
+
+    target.style.display = "block";
+    moveTarget();
+    playArpeggio([523, 659, 784], 0.06, "sine");
+
+    gameTimer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+
+        if(timeLeft <= 0){
+            clearInterval(gameTimer);
+            gameActive = false;
+            target.style.display = "none";
+
+            if(score > bestScore){
+                bestScore = score;
+                localStorage.setItem("aashna_best_score", bestScore);
+                bestScoreEl.textContent = bestScore;
+                confettiRain();
+                gameMessage.textContent = `🎉 NEW HIGH SCORE: ${score} ⚡ YOU'RE ON FIRE!`;
+                playArpeggio([523, 659, 784, 1046, 1318], 0.08, "triangle");
+                showToast(`🏆 New Reflex High Score: ${score}!`);
+            } else {
+                gameMessage.textContent = `GAME OVER! YOUR SCORE: ${score} ⚡`;
+                playSound(320, 0.4, "sawtooth");
+            }
+        }
+    }, 1000);
+});
+
+target.addEventListener("click", e => {
+    if(!gameActive) return;
+
+    score++;
+    combo++;
+    scoreEl.textContent = score;
+
+    // Floating score popup
+    const pop = document.createElement("div");
+    pop.className = "score-pop";
+    pop.textContent = combo > 3 ? `+1 ⚡ x${combo} COMBO!` : `+1 ⚡`;
+    pop.style.left = e.clientX + "px";
+    pop.style.top = e.clientY + "px";
+    document.body.appendChild(pop);
+    setTimeout(() => pop.remove(), 800);
+
+    // Sparks
+    spawnSparks(e.clientX, e.clientY, 15, ["⚡", "✦", "★"]);
+
+    // Pitch rises with score
+    playSound(600 + Math.min(score * 25, 800), 0.08, "triangle", 0.1);
+
+    moveTarget();
+});
+
+
+/* ========================================================
+   23. KEYBOARD SHORTCUTS EASTER EGGS
+   ======================================================== */
+window.addEventListener("keydown", e => {
+    const key = e.key.toLowerCase();
+    if(key === "c"){
+        confettiRain();
+        playSound(800, 0.15, "triangle");
+        showToast("🎉 Key Pressed 'C': Confetti Storm!");
+    } else if(key === "b"){
+        document.body.animate([
+            { transform: "translateY(0)" },
+            { transform: "translateY(-15px) rotate(-1deg)" },
+            { transform: "translateY(10px) rotate(1deg)" },
+            { transform: "translateY(0)" }
+        ], { duration: 400, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" });
+        playSound(400, 0.2, "sine");
+        showToast("🦘 Key Pressed 'B': Page Bounce!");
+    } else if(key === "t"){
+        document.getElementById("theme").click();
+    }
+});
+
+console.log("⚡ Aashna.exe loaded successfully. Ready to conquer!");
+</script>
+
+</body>
+</html>
