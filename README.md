@@ -8,7 +8,7 @@
 
 <br>
 
-[🌐 ENTER MY WORLD](YOUR-LIVE-WEBSITE-LINK) &nbsp; • &nbsp; [💻 EXPLORE THE CODE](YOUR-GITHUB-REPO-LINK)
+[🌐 ENTER MY WORLD](https://spectacular-bubblegum-32a26e.netlify.app) &nbsp; 
 
 </div>
 
